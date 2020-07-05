@@ -13,7 +13,7 @@ import os
 
 class CWLViewer:
     """
-    Visualize a CWL workflow. The viewer tagrets to produce same images with the
+    Visualize a CWL workflow. The viewer tagrets to produce similar images with the
     https://github.com/common-workflow-language/cwlviewer.
     """
 
