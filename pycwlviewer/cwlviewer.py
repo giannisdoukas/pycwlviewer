@@ -1,7 +1,8 @@
 #!/usr/bin/env python
+import logging
 from pathlib import Path
-from io import StringIO
-from typing import List, Optional
+from io import StringIO, BytesIO
+from typing import List, Optional, Union
 import sys
 
 import rdflib
@@ -33,8 +34,10 @@ class CWLViewer:
         self._set_output_edges()
 
     def _cwl2rdf(self) -> str:
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
         stdout = StringIO()
-        cwltool_main(['--print-rdf', str(self._filename)], stdout=stdout)
+        cwltool_main(['--print-rdf', str(self._filename)], stdout=stdout, logger_handler=console_handler)
         return stdout.getvalue()
 
     def _load_cwl_graph(self) -> rdflib.graph.Graph:
@@ -114,11 +117,18 @@ class CWLViewer:
         graph.graph_attr['labeljust'] = "left"
         graph.graph_attr['clusterrank'] = "local"
         graph.node_attr['shape'] = "record"
+        graph.graph_attr['label'] = "<<font color='#AAAAAA'>Produced by PyCWLViewer</font>>"
+        graph.graph_attr['labelloc'] = "bottom"
+        graph.graph_attr['labeljust'] = "right"
+
         return graph
 
-    def draw(self, filename: Path, graphviz_layout: str = 'dot'):
+    def draw(self, filename: Union[Path, BytesIO], graphviz_layout: str = 'dot'):
         self._dot_graph.layout(prog=graphviz_layout)
-        self._dot_graph.draw(str(filename))
+        if isinstance(filename, Path):
+            self._dot_graph.draw(str(filename))
+        else:
+            self._dot_graph.draw(filename, "png")
 
     def dot(self):
         return self._dot_graph.to_string()
